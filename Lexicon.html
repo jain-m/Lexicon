@@ -110,15 +110,55 @@
             color: var(--accent-quote);
         }
 
+        .definition-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            width: 100%;
+        }
+
         .definition {
             font-size: 1.25rem;
             line-height: 1.6;
             color: var(--text-muted);
             font-weight: 400;
+            flex: 1;
+        }
+
+        .inline-speak-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s ease, color 0.2s ease;
+            border-radius: 50%;
+        }
+
+        .inline-speak-btn:active {
+            transform: scale(0.9);
+        }
+
+        .inline-speak-btn:hover {
+            color: var(--text-main);
         }
 
         .quote-container {
             position: relative;
+        }
+
+        .quote-text-layout {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
         }
 
         .quote-text {
@@ -127,8 +167,7 @@
             line-height: 1.5;
             color: var(--text-main);
             font-weight: 600;
-            position: relative;
-            z-index: 1;
+            flex: 1;
         }
 
         .quote-mark {
@@ -153,7 +192,7 @@
             background-color: var(--text-main);
             color: white;
             border: none;
-            width: 56px;  /* Makes it a clean circle instead of a pill */
+            width: 56px;  
             height: 56px;
             display: flex;
             align-items: center;
@@ -176,22 +215,40 @@
     <div class="container">
         <div id="display-card" class="card">
             
+            <!-- Vocabulary Layout View -->
             <div id="dict-view" class="dict-container">
                 <span class="tag">Vocabulary</span>
                 <h1 id="vocab-word" class="word"></h1>
-                <p id="vocab-definition" class="definition"></p>
+                <div class="definition-wrapper">
+                    <p id="vocab-definition" class="definition"></p>
+                    <button class="inline-speak-btn" onclick="speakCurrentEntry(event)" aria-label="Speak Entry">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
+            <!-- Quote Layout View -->
             <div id="quote-view" class="quote-container">
                 <span class="tag">Thought</span>
                 <span class="quote-mark">“</span>
-                <p id="quote-string" class="quote-text"></p>
+                <div class="quote-text-layout">
+                    <p id="quote-string" class="quote-text"></p>
+                    <button class="inline-speak-btn" onclick="speakCurrentEntry(event)" aria-label="Speak Quote">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
         </div>
 
         <div class="controls">
-            <div class="btn" role="button" aria-label="Next Entry">
+            <div class="btn id-next-btn" role="button" aria-label="Next Entry">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
@@ -200,7 +257,7 @@
     </div>
 
     <script>
-        // Exact raw strings mapped directly from your CSV format
+        // Exact raw data array preserved
         const entries = [
             "Abate: Lessen, subside, decrease",
             "Ablation: Material erosion, melting",
@@ -404,7 +461,7 @@
             "Impassively: Calmly, without emotion",
             "Impeccable: Faultless, accordance with highest standards",
             "Impecunious: Having little no money",
-            "Impede: Delay prevent someone thing by obstructing",
+            "Impede: Delay prevent someone thing by magnifying",
             "Imperious: Assuming power authority without justification",
             "Impermeable: Not allowing fluid to pass through",
             "Impetuous: Acting quickly without thought care",
@@ -674,22 +731,23 @@
             const dictView = document.getElementById('dict-view');
             const quoteView = document.getElementById('quote-view');
             
-            // Fade out animation
+            if (!card || !dictView || !quoteView) return;
+
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+            
             card.classList.remove('visible');
             
             setTimeout(() => {
-                // Select a completely random raw entry string
                 const randomIndex = Math.floor(Math.random() * entries.length);
                 const entryStr = entries[randomIndex].trim();
 
-                // Clear previous state styles
                 card.classList.remove('dictionary', 'quote');
                 dictView.style.display = 'none';
                 quoteView.style.display = 'none';
 
-                // Core logic: Evaluate rendering mode dynamically based on the presence of ':'
                 if (entryStr.includes(':')) {
-                    // Split at the first colon encounter
                     const colonIndex = entryStr.indexOf(':');
                     const term = entryStr.substring(0, colonIndex).trim();
                     const definition = entryStr.substring(colonIndex + 1).trim();
@@ -699,33 +757,55 @@
                     document.getElementById('vocab-definition').textContent = definition;
                     dictView.style.display = 'block';
                 } else {
-                    // Treat the entire string text as a quote block
                     card.classList.add('quote');
                     document.getElementById('quote-string').textContent = entryStr;
                     quoteView.style.display = 'block';
                 }
 
-                // Fade back in animation
                 card.classList.add('visible');
             }, 250);
         }
 
-        // Run immediately when DOM finishes parsing
-        window.addEventListener('DOMContentLoaded', () => {
-            // 1. Force load the first random entry safely
+        function speakCurrentEntry(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+
+            const card = document.getElementById('display-card');
+            let textToSpeak = "";
+
+            if (card.classList.contains('dictionary')) {
+                const word = document.getElementById('vocab-word').textContent;
+                const definition = document.getElementById('vocab-definition').textContent;
+                textToSpeak = `${word}. ${definition}`;
+            } else if (card.classList.contains('quote')) {
+                textToSpeak = document.getElementById('quote-string').textContent;
+            }
+
+            if (textToSpeak) {
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.rate = 0.95;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Standard direct window trigger safely bypassing strict context constraints
+        window.onload = function() {
             displayRandomEntry();
 
-            // 2. Safely bind the click event to "Another One" button
-            const nextBtn = document.querySelector('.btn');
+            const nextBtn = document.querySelector('.id-next-btn');
             if (nextBtn) {
-                nextBtn.removeAttribute('onclick'); // Remove old attribute handler
-                nextBtn.addEventListener('click', (e) => {
+                nextBtn.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     displayRandomEntry();
-                });
+                };
             }
-        });
+        };
     </script>
 </body>
 </html>
