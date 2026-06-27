@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Word & Quote Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --accent-dict: #3498db;
+            --accent-quote: #e67e22;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            perspective: 1000px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+        }
+
+        .card.dictionary::before {
+            background-color: var(--accent-dict);
+        }
+
+        .card.quote::before {
+            background-color: var(--accent-quote);
+        }
+
+        .dict-container, .quote-container {
+            display: none;
+        }
+
+        .word {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+            margin-bottom: 12px;
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .dictionary .tag {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--accent-dict);
+        }
+
+        .quote .tag {
+            background-color: rgba(230, 126, 34, 0.1);
+            color: var(--accent-quote);
+        }
+
+        .definition {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .quote-container {
+            position: relative;
+        }
+
+        .quote-text {
+            font-size: 1.6rem;
+            font-style: italic;
+            line-height: 1.5;
+            color: var(--text-main);
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .quote-mark {
+            position: absolute;
+            top: -40px;
+            left: -20px;
+            font-size: 8rem;
+            color: rgba(230, 126, 34, 0.08);
+            font-family: Georgia, serif;
+            user-select: none;
+            line-height: 1;
+            z-index: 0;
+        }
+
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn {
+            background-color: var(--text-main);
+            color: white;
+            border: none;
+            width: 56px;  /* Makes it a clean circle instead of a pill */
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="display-card" class="card">
+            
+            <div id="dict-view" class="dict-container">
+                <span class="tag">Vocabulary</span>
+                <h1 id="vocab-word" class="word"></h1>
+                <p id="vocab-definition" class="definition"></p>
+            </div>
+
+            <div id="quote-view" class="quote-container">
+                <span class="tag">Thought</span>
+                <span class="quote-mark">“</span>
+                <p id="quote-string" class="quote-text"></p>
+            </div>
+
+        </div>
+
+        <div class="controls">
+            <div class="btn" role="button" aria-label="Next Entry">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Exact raw strings mapped directly from your CSV format
+        const entries = [
+            "Abate: Lessen, subside, decrease",
+            "Ablation: Material erosion, melting",
+            "Absolution: Forgiveness, pardon, release",
+            "Acquiescence: Reluctant acceptance, compliance",
+            "Ad hominem: Personal attack",
+            "Affront: Intentional insult",
+            "Aficionado: Enthusiast, fan, admirer",
+            "Ameliorate: Improve, better",
+            "Amorous: Passionate, lustful, romantic",
+            "Androgogy: Adult education method",
+            "Anomie: Social normlessness",
+            "Antithesis: Direct opposite",
+            "Apocryphally: Authenticity doubted",
+            "Apoplectic: Furious, extremely indignant",
+            "Appeases conjecture: Satisfies guesswork",
+            "Atonement vs. weightless apology: Reparation versus excuse",
+            "Bastion: Stronghold, defender",
+            "Beguiling: Charming, deceptive",
+            "Behest: Command, order",
+            "Belie: Misrepresent, contradict",
+            "Bequeath: Leave, hand down",
+            "Besotted: Infatuated, obsessed, intoxicated",
+            "Bespoke, artisanal: Custom, handcrafted",
+            "Bigotry: Intolerance, prejudice",
+            "Blowhard: Boastful person",
+            "Bludgeon: Bully, force, batter",
+            "Bottom dollar: Last money",
+            "Braggadocio: Boastful behavior",
+            "Bravado: Bold pretense",
+            "Bucolic: Rural, rustic, pastoral",
+            "Byzantine, labyrinthine: Intricate, highly complex",
+            "Cadence: Vocal inflection, rhythm",
+            "Cantankerous: Bad-tempered, uncooperative",
+            "Catatonic: Unresponsive, immobile",
+            "Cheeky: Impudent, amusingly irreverent",
+            "Chronicled: Recorded history",
+            "Clandestine: Secret, surreptitious, covert",
+            "Clarion call: Loud appeal, summons",
+            "Coalesce: Merge, unite, combine",
+            "Comport: Behave, conduct oneself",
+            "Conceited: Vain, excessively proud",
+            "Contumacious: Stubbornly disobedient",
+            "Conundrum: Confusing difficult problem",
+            "Convocation: Large formal assembly",
+            "Copious: Abundant, plentiful",
+            "Corporeal: Relating to physical body",
+            "Corroborate: Confirm, support with evidence",
+            "Coterie: Small exclusive group",
+            "Countenance: Facial expression, support",
+            "Crass: Lacking sensitivity, stupid",
+            "Craven: Cowardly",
+            "Credence: Belief, acceptance as true",
+            "Credulity: Tendency to believe easily",
+            "Crescendo: Gradual increase in loudness",
+            "Cynicism: Skepticism, distrust of motives",
+            "Dearth: Scarcity, lack",
+            "Debacle: Sudden ignominious failure",
+            "Debauchery: Excessive indulgence in pleasure",
+            "Decorous: Polite, restrained, proper",
+            "Decry: Publicly denounce",
+            "Deference: Humble submission, respect",
+            "Demagogue: Leader appealing to desires",
+            "Demur: Raise doubts, object",
+            "Denouement: Final resolution of plot",
+            "Dereliction: Deliberate neglect of duty",
+            "Despondent: Discouraged, hopeless",
+            "Despot: Absolute ruler, tyrant",
+            "Desultory: Lacking plan, purpose, enthusiasm",
+            "Diatribe: Bitter verbal attack",
+            "Dichotomy: Division into two parts",
+            "Didactic: Intended to teach",
+            "Diffident: Modest, shy, lacking confidence",
+            "Dilatory: Slow to act, delaying",
+            "Dilettante: Amateur, superficial interest",
+            "Disabuse: Persuade someone idea is mistaken",
+            "Disconsolate: Unhappy, unable to be comforted",
+            "Disparate: Essentially different, distinct",
+            "Dissemble: Conceal motives, feelings, beliefs",
+            "Disseminate: Spread, circulate information",
+            "Dissolution: Dismissal, termination, decay",
+            "Dissonance: Lack of harmony, disagreement",
+            "Distal: Situated away from center",
+            "Dogmatic: Opinionated, asserting principles strongly",
+            "Dour: Severe, stern, gloomy",
+            "Draconian: Excessively harsh, severe",
+            "Duplicity: Deceitfulness, double-dealing",
+            "Ebullient: Cheerful, full of energy",
+            "Eclectic: Deriving ideas from diverse sources",
+            "Edifice: Large imposing building",
+            "Efficacy: Ability to produce desired result",
+            "Effrontery: Insolent impertinent behavior",
+            "Effusive: Expressing gratitude, approval heartfelt",
+            "Egalitarian: Believing in human equality",
+            "Egregious: Outstandingly bad, shocking",
+            "Elicit: Evoke, draw out response",
+            "Elixir: Magical medicinal liquid",
+            "Eloquent: Fluent persuasive in speech",
+            "Emaciated: Abnormally thin, weak",
+            "Embellish: Decorate, add details to",
+            "Emissary: Person sent on mission",
+            "Empirical: Verifiable by observation, experience",
+            "Emulate: Match, surpass by imitation",
+            "Encomium: Speech piece of writing praising",
+            "Endemic: Native restricted to certain area",
+            "Enervate: Cause to feel drained",
+            "Enfranchise: Give right to vote",
+            "Engender: Cause, give rise to",
+            "Enigma: Mysterious puzzling person thing",
+            "Ennui: Boredom arising from lack of occupation",
+            "Ephemeral: Lasting for very short time",
+            "Epitome: Perfect example of quality",
+            "Equanimity: Mental calmness, composure",
+            "Equivocal: Ambiguous, open to interpretation",
+            "Eradicate: Destroy completely, put end to",
+            "Erratic: Unpredictable, unconventional",
+            "Erudite: Having showing great knowledge",
+            "Esoteric: Intended for understood by few",
+            "Ethereal: Extremely delicate light, heavenly",
+            "Euphemism: Mild substitute for harsh word",
+            "Evanescent: Soon passing out of sight",
+            "Exacerbate: Make problem worse",
+            "Exculpate: Show declare someone not guilty",
+            "Execrable: Extremely bad, unpleasant",
+            "Exhort: Strongly encourage urge someone",
+            "Exigent: Pressing, demanding",
+            "Exonerate: Absolve from blame",
+            "Expatriate: Person living outside native country",
+            "Expedient: Convenient practical, possibly improper",
+            "Expiate: Make amends for guilt",
+            "Explicate: Analyze develop in detail",
+            "Expunge: Obliterate, remove completely",
+            "Extant: Still in existence, surviving",
+            "Extenuating: Making offense seem less serious",
+            "Extirpate: Root out, destroy completely",
+            "Extraneous: Irrelevant, unrelated to subject",
+            "Extrapolate: Estimate conclude by extending trends",
+            "Extravagant: Lacking restraint in spending",
+            "Exuberant: Full of energy, excitement",
+            "Facetious: Treating serious issues with humor",
+            "Facile: Ignoring complexities, superficial",
+            "Fallacious: Based on mistaken belief",
+            "Fastidious: Attentive to detail, accuracy",
+            "Fatuous: Silly, pointless",
+            "Fealty vs. loyalty: Duty versus devotion",
+            "Fecund: Fertile, highly productive",
+            "Fervent: Having showing passionate intensity",
+            "Fetter: Restrain with chains, shackle",
+            "Fiasco: Complete failure, disaster",
+            "Fiat: Formal authorization, decree",
+            "Fickle: Changing frequently loyalties, interests",
+            "Filial: Relating to son daughter",
+            "Flagrant: Conspicuously offensive",
+            "Flippant: Not showing serious respectful attitude",
+            "Florid: Having red flushed complexion",
+            "Flout: Openly disregard rule law",
+            "Foil: Prevent from succeeding",
+            "Foment: Instigate, stir up trouble",
+            "Forbearance: Patient self-control, restraint",
+            "Fortuitous: Happening by lucky chance",
+            "Fractious: Irritable, quarrelsome",
+            "Freedom and famine: Liberty with starvation",
+            "Frivolous: Not having serious purpose value",
+            "Frugal: Sparing, economical with regard to food money",
+            "Fulminate: Express vehement protest",
+            "Furtive: Attempting to avoid notice, stealthy",
+            "Futile: Incapable of producing useful result",
+            "Gainsay: Deny, contradict statement",
+            "Garrulous: Excessively talkative",
+            "Gauche: Lacking ease grace, unsophisticated",
+            "Germane: Relevant to subject under consideration",
+            "Glib: Fluent words but insincere shallow",
+            "Glutton for punishment: Welcoming difficult tasks",
+            "Grandiloquent: Pompous extravagant in language",
+            "Gratuitous: Uncalled for, lacking good reason",
+            "Gregarious: Fond of company, sociable",
+            "Guile: Sly cunning intelligence",
+            "Hackneyed: Lacking significance through overuse",
+            "Halcyon: Denoting period of time idyllically happy",
+            "Hapless: Unfortunate",
+            "Harangue: Lengthy aggressive speech",
+            "Hedonism: Pursuit of pleasure, self-indulgence",
+            "Hegemony: Leadership dominance by one country",
+            "Heinous: Utterly odious wicked",
+            "Heresy: Opinion profoundly at odds with accepted belief",
+            "Hermetic: Complete airtight closure",
+            "Heterogeneous: Diverse in character content",
+            "Hiatus: Pause gap in sequence series",
+            "Histronic: Excessively theatrical dramatic",
+            "Homage: Special honor respect shown publicly",
+            "Homogeneous: Of same kind, alike",
+            "Hubris and myopia: Pride with shortsightedness",
+            "Humility and hubris: Modesty versus pride",
+            "Hyperbole: Exaggerated statements not literal",
+            "Iconoclast: Person attacking cherished beliefs",
+            "Idiosyncrasy: Mode of behavior peculiar to individual",
+            "Ignominious: Deserving causing public disgrace",
+            "Imbue: Inspire permeate with feeling quality",
+            "Imminent: About to happen",
+            "Immutable: Unchanging over time, unable to be changed",
+            "Impassively: Calmly, without emotion",
+            "Impeccable: Faultless, accordance with highest standards",
+            "Impecunious: Having little no money",
+            "Impede: Delay prevent someone thing by obstructing",
+            "Imperious: Assuming power authority without justification",
+            "Impermeable: Not allowing fluid to pass through",
+            "Impetuous: Acting quickly without thought care",
+            "Impious: Not showing respect reverence for god",
+            "Implacable: Unable to be appeased placated",
+            "Implicit: Implied though not plainly expressed",
+            "Implode: Collapse violently inwards",
+            "Importunate: Persistent, to point of annoyance",
+            "Impugn: Call into question, dispute truth",
+            "Impunity: Exemption from punishment freedom from consequences",
+            "Inadvertent: Not resulting from deliberate planning",
+            "Inane: Silly, stupid",
+            "Inchoate: Just begun, not so fully formed",
+            "Incisive: Intelligently analytical clear-thinking",
+            "Incongruous: Not harmony keeping with surroundings",
+            "Incontrovertible: Not able to be denied disputed",
+            "Incorrigible: Not able to be corrected improved",
+            "Incredulous: Unwilling unable to believe something",
+            "Indefatigable: Persisting tirelessly",
+            "Indelible: Making marks cannot be removed",
+            "Indigence: Poverty",
+            "Indolent: Wanting to avoid exertion, lazy",
+            "Indomitable: Impossible to subdue defeat",
+            "Ineffable: Too great extreme to be expressed words",
+            "Ineluctable: Unable to be resisted avoided",
+            "Inept: Having showing no skill, clumsy",
+            "Inert: Lacking ability strength to move",
+            "Inexorable: Impossible to stop prevent",
+            "Infallible: Incapable of making mistakes being wrong",
+            "Ingenuous: Innocent, unsuspecting",
+            "Ingrate: Ungrateful person",
+            "Inimical: Tending to obstruct harm",
+            "Iniquity: Gross injustice wicked behavior",
+            "Innocuous: Not harmful offensive",
+            "Inscrutable: Impossible to understand interpret",
+            "Insidious: Proceeding gradual subtle way with harmful effects",
+            "Insipid: Lacking flavor, interest",
+            "Insolent: Showing rude arrogant lack of respect",
+            "Insouciant: Showing casual lack of concern",
+            "Insular: Ignorant uninterested cultures outside own",
+            "Intractable: Hard to control deal with",
+            "Intransigent: Unwilling refusing to change views",
+            "Intrepid: Fearless, adventurous",
+            "Inundate: Overwhelm someone with things people",
+            "Invective: Insulting, abusive highly critical language",
+            "Inveigh: Speak write about with great hostility",
+            "Inveterate: Long-established unlikely to change",
+            "Invidious: Likely to arouse anger resentment",
+            "Iascible: Easily angered",
+            "Itinerant: Traveling from place to place",
+            "Jettison: Abandon discard unwanted burden",
+            "Jingoism: Extreme patriotism, aggressive foreign policy",
+            "Jocular: Humorous, playful",
+            "Judicious: Having showing good judgment sense",
+            "Jumped the shark: Declined in quality",
+            "Juxtaposition: Fact of two things placed close with contrasting effect",
+            "Laconic: Using very few words",
+            "Lambaste: Criticize harshly",
+            "Languid: Displaying disinclination for physical exertion",
+            "Larceny: Theft of personal property",
+            "Largesse: Generosity bestowing money gifts",
+            "Lassitude: State of physical mental weariness",
+            "Latent: Existing but not yet developed manifest",
+            "Laudatory: Expressing praise",
+            "Lavish: Sumptuously rich, elaborate",
+            "Lethargic: Sluggish, apathetic",
+            "Levity: Humor lack of seriousness treating serious matter",
+            "Libertine: Person behaving without moral principles",
+            "Licentious: Promiscuous unprincipled sexual matters",
+            "Limpid: Clear, transparent",
+            "Lithe: Thin, supple, graceful",
+            "Loquacious: Talkative",
+            "Lucid: Expressed clearly, easy to understand",
+            "Lugubrious: Looking sounding sad dismal",
+            "Machination: Plot scheme",
+            "Magnanimous: Generous forgiving, especially toward rival",
+            "Maladroit: Inefficient, clumsy",
+            "Malady: Disease ailment",
+            "Malevolent: Having showing wish to do evil others",
+            "Malign: Evil in nature effect, speak ill of",
+            "Malleable: Able to be hammered pressed permanently out of shape",
+            "Maverick: Unorthodox independent-minded person",
+            "Mawkish: Sentimental in exaggerated sickly way",
+            "Megalomaniac, पहिलवान बुध्दि : Power-obsessed brute intellect",
+            "Mendacious: Not telling truth, lying",
+            "Meritocracy or mirroritocracy: Capability vs imitation",
+            "Meticulous: Showing great attention to detail",
+            "Misanthrope: Person dislikes humankind",
+            "Mitigate: Make less severe serious painful",
+            "Mollify: Appease anger anxiety of",
+            "Morose: Sullen, ill-tempered",
+            "Munificent: Larger more generous than usual necessary",
+            "Myopia: Nearsightedness, lack of imagination",
+            "Nadir: Lowest point",
+            "Nefarious: Wicked criminal",
+            "Neophyte: Person new to subject skill belief",
+            "Nihilism: Rejection of religious moral principles",
+            "Noxious: Harmful, poisonous unpleasant",
+            "Obdurate: Stubbornly refusing to change opinion",
+            "Obfuscate: Render obscure, unclear unintelligible",
+            "Obsequious: Obedient attentive to excessive degree",
+            "Obstinate: Stubbornly refusing to change opinion action",
+            "Obtuse: Annoyingly insensitive slow to understand",
+            "Obviate: Remove need, prevent",
+            "Odious: Extremely unpleasant, repulsive",
+            "Onerous: Involving amount of effort oppressively burdensome",
+            "Opaque: Not able to be seen through",
+            "Opprobrium: Harsh criticism, public disgrace",
+            "Opulent: Ostentatiously rich luxurious",
+            "Orthodoxy: Authorized generally accepted theory doctrine",
+            "Ostentatious: Pretentious vulgar display designed to impress",
+            "Ostracism: Exclusion from society group",
+            "Palpable: Able to be touched felt",
+            "Panacea: Solution remedy for all difficulties diseases",
+            "Paradigm: Typical example pattern of something",
+            "Paradox: Self-contradictory statement looks true",
+            "Pariah: Outcast",
+            "Parochial: Having limited narrow outlook",
+            "Parody: Humorously exaggerated imitation",
+            "Parsimonious: Unwilling to spend money resources",
+            "Partisan: Strong supporter of party cause",
+            "Paucity: Presence of something in small insufficient quantities",
+            "Peccadillo: Small relatively unimportant offense",
+            "Pedantic: Excessively concerned with minor details rules",
+            "Pejorative: Expressing contempt disapproval",
+            "Penchant: Strong habitual liking for something",
+            "Penurious: Extremely poor, poverty-stricken",
+            "Peremptory: Insisting on immediate attention obedience",
+            "Perfidious: Deceitful, untrustworthy",
+            "Perfunctory: Carried out with minimum effort reflection",
+            "Peripatetic: Traveling from place to place working",
+            "Pernicious: Having harmful effect, gradual subtle way",
+            "Perspicacious: Having ready insight understanding of things",
+            "Pertinacious: Holding firmly to opinion course of action",
+            "Pervasive: Spreading widely throughout area group",
+            "Petulant: Childishly sulky bad-tempered",
+            "Philistine: Person hostile indifferent to culture arts",
+            "Pious: Devoutly religious",
+            "Pithy: Concise forcefully expressive",
+            "Placate: Make someone less angry hostile",
+            "Platitude: Remark statement used too often to be interesting",
+            "Plethora: Large excessive amount of something",
+            "Pliant: Easily bent, flexible",
+            "Polemic: Strong verbal written attack",
+            "Pragmatic: Dealing with things sensibly realistically",
+            "Precarious: Not securely held in position, dangerously unstable",
+            "Preclude: Prevent from happening, make impossible",
+            "Precocious: Having developed abilities advanced for age",
+            "Predilection: Preference special liking for something",
+            "Prescient: Having showing knowledge of events before take place",
+            "Pretentious: Attempting to impress by affecting greater importance",
+            "Prevaricate: Speak act in evasive way",
+            "Pristine: Clean fresh as if new, spotless",
+            "Probity: Quality of having strong moral principles, honesty",
+            "Proclivity: Tendency to choose do something regularly",
+            "Prodigal: Spending money resources freely wastefully",
+            "Prodigious: Impressively great in size extent",
+            "Profane: Relating to that which is not sacred",
+            "Profligate: Recklessly extravagant wasteful",
+            "Profound: Very great intense",
+            "Profuse: Exuberantly plentiful, abundant",
+            "Prolific: Producing much fruit foliage many works",
+            "Prolix: Using containing too many words",
+            "Promulgate: Promote publicize account",
+            "Propensity: Natural tendency to behave in particular way",
+            "Propitiate: Win regain favor of by doing something pleasing",
+            "Propriety: State quality of conforming to conventionally accepted standards",
+            "Prosaic: Having style diction of prose, lacking poetic beauty",
+            "Proscribe: Forbid, especially by law",
+            "Protracted: Lasting for long time, longer than expected",
+            "Provincial: Regarding regions outside capital city, narrow-minded",
+            "Prudent: Acting with showing care thought for future",
+            "Prurient: Having showing excessive interest in sexual matters",
+            "Pugnacious: Eager quick to argue quarrel fight",
+            "Punctilious: Showing great attention to detail correct behavior",
+            "Pundit: Expert in particular field frequently called on to give opinions",
+            "Pungent: Having sharply strong taste smell",
+            "Punitive: Inflicted intended as punishment",
+            "Pusillanimous: Showing lack of courage, timid",
+            "Qualms: Uneasy feelings of doubt, worry, fear",
+            "Querulous: Complaining in petulant whining manner",
+            "Quixotic: Exceedingly idealistic, unrealistic impractical",
+            "Quotidian: Of occurring every day, daily",
+            "Rancor: Bitterness resentfulness, deep-seated ill will",
+            "Rapacious: Aggressively greedy grasping",
+            "Rapprochement: Establishment of harmonious relations",
+            "Raucous: Making disturbingly harsh loud noise",
+            "Recalcitrant: Having obstinately uncooperative attitude toward authority",
+            "Recant: Say that one no longer holds opinion belief",
+            "Recondite: Little known, abstruse",
+            "Redoubtable: Formidable, especially as opponent",
+            "Refractory: Stubborn unmanageable",
+            "Refute: Prove statement theory to be wrong",
+            "Reiterate: Say something again number of times",
+            "Renegade: Person deserts betrays organization country set of principles",
+            "Renounce: Formally declare one's abandonment of claim right",
+            "Reprehensible: Deserving censure condemnation",
+            "Reproach: Express disapproval disappointment",
+            "Reprobate: Unprincipled person",
+            "Repudiate: Refuse to accept validity of",
+            "Rescind: Revoke, cancel law order agreement",
+            "Resilient: Able to withstand recover quickly from difficult conditions",
+            "Resolution: Firm decision to do not do something",
+            "Respite: Short period of rest relief from something difficult",
+            "Reticent: Not revealing one's thoughts feelings readily",
+            "Reverent: Feeling showing deep solemn respect",
+            "Rhetoric: Art of effective persuasive speaking writing",
+            "Rite of passage: Milestone ritual",
+            "Ruminate: Think deeply about something",
+            "Rustic: Relating to countryside, rural",
+            "Sacrosanct: Regarded as too important valuable to be interfered with",
+            "Sagacious: Having showing keen mental discernment good judgment",
+            "Salient: Most noticeable important",
+            "Salubrious: Health-giving, healthy",
+            "Sanctimonious: Making show of being morally superior",
+            "Sanguine: Optimistic positive, especially in bad situation",
+            "Sardonic: Grimly mocking cynical",
+            "Satiate: Satisfied to full",
+            "Scathing: Witheringly scornful, severely critical",
+            "Scintillating: Sparkling shining brightly, brilliantly clever",
+            "Scrupulous: Diligent, thorough, attentive to details",
+            "Scrutinize: Examine inspect closely thoroughly",
+            "Secular: Non-religious, temporal",
+            "Sedition: Rebellion incitement",
+            "Self-immolation: Sacrifice by fire",
+            "Seminal: Groundbreaking, highly influential",
+            "Seminal, pivotal: Influential turning point",
+            "Sequoias subservience (obsequious): Extreme behavioral conformity",
+            "Setback is a setup for comeback",
+            "Shoot the breeze: Chat casually",
+            "Sigmoid: S-shaped curve",
+            "Sojourn: Temporary stay",
+            "Spurn: Reject disdainfully",
+            "Stalwart: Loyal hardworking supporter",
+            "Stanning: Obsessive fan devotion",
+            "Strafing: Low-flying aerial attack",
+            "Strike me up a gum tree: Expression of astonishment",
+            "Strutting: Arrogant stiff walking",
+            "Stultified: Smothered by routine",
+            "Subterfuge: Deceitful trickery, evasion",
+            "Supplicate: Beg humbly, pray",
+            "Surreptitious: Secret, stealthy, clandestine",
+            "Taken a shine on: Sudden liking developed",
+            "To be foil for: Contrast and highlight",
+            "Totalitarianism: Autocratic centralized control",
+            "Unfathomable: Incomprehensible, immeasurable",
+            "Unmoored: Disconnected, unstable",
+            "Valor: Bravery, courage",
+            "Vapid: Dull, uninspiring, flavorless",
+            "Veneration: Great respect, reverence",
+            "Vernacular: Native everyday language",
+            "Vigilante: Unauthorized law enforcer",
+            "Vile: Despicable, extremely unpleasant",
+            "Virtuous: Morally excellent, righteous",
+            "Visceral: Deep emotional instinct",
+            "Vitriol: Cruel bitter criticism",
+            "Volition: Willpower, free choice",
+            "Warlock: Male magic practitioner",
+            "Waylaid: Interrupted, detained, ambushed",
+            "Whorfianism: Language-shapes-thought theory",
+            "Xenophobe: Anti-foreigner prejudiced person",
+            "Zeitenwende: Historical turning point"
+        ];
+
+        function displayRandomEntry() {
+            const card = document.getElementById('display-card');
+            const dictView = document.getElementById('dict-view');
+            const quoteView = document.getElementById('quote-view');
+            
+            // Fade out animation
+            card.classList.remove('visible');
+            
+            setTimeout(() => {
+                // Select a completely random raw entry string
+                const randomIndex = Math.floor(Math.random() * entries.length);
+                const entryStr = entries[randomIndex].trim();
+
+                // Clear previous state styles
+                card.classList.remove('dictionary', 'quote');
+                dictView.style.display = 'none';
+                quoteView.style.display = 'none';
+
+                // Core logic: Evaluate rendering mode dynamically based on the presence of ':'
+                if (entryStr.includes(':')) {
+                    // Split at the first colon encounter
+                    const colonIndex = entryStr.indexOf(':');
+                    const term = entryStr.substring(0, colonIndex).trim();
+                    const definition = entryStr.substring(colonIndex + 1).trim();
+
+                    card.classList.add('dictionary');
+                    document.getElementById('vocab-word').textContent = term;
+                    document.getElementById('vocab-definition').textContent = definition;
+                    dictView.style.display = 'block';
+                } else {
+                    // Treat the entire string text as a quote block
+                    card.classList.add('quote');
+                    document.getElementById('quote-string').textContent = entryStr;
+                    quoteView.style.display = 'block';
+                }
+
+                // Fade back in animation
+                card.classList.add('visible');
+            }, 250);
+        }
+
+        // Run immediately when DOM finishes parsing
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1. Force load the first random entry safely
+            displayRandomEntry();
+
+            // 2. Safely bind the click event to "Another One" button
+            const nextBtn = document.querySelector('.btn');
+            if (nextBtn) {
+                nextBtn.removeAttribute('onclick'); // Remove old attribute handler
+                nextBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    displayRandomEntry();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
