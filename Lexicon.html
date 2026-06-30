@@ -12,6 +12,7 @@
             --text-muted: #7f8c8d;
             --accent-dict: #3498db;
             --accent-quote: #e67e22;
+            --accent-trash: #e74c3c;
             --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         }
 
@@ -126,7 +127,13 @@
             flex: 1;
         }
 
-        .inline-speak-btn {
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .inline-speak-btn, .inline-trash-btn {
             background: none;
             border: none;
             color: var(--text-muted);
@@ -139,12 +146,16 @@
             border-radius: 50%;
         }
 
-        .inline-speak-btn:active {
+        .inline-speak-btn:active, .inline-trash-btn:active {
             transform: scale(0.9);
         }
 
         .inline-speak-btn:hover {
             color: var(--text-main);
+        }
+
+        .inline-trash-btn:hover {
+            color: var(--accent-trash);
         }
 
         .quote-container {
@@ -186,6 +197,7 @@
             margin-top: 30px;
             display: flex;
             justify-content: center;
+            gap: 20px;
         }
 
         .btn {
@@ -208,6 +220,116 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
 
+        .btn.trash-panel-btn {
+            background-color: #95a5a6;
+        }
+
+        /* Trashcan Modal Panel styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .trash-list {
+            overflow-y: auto;
+            flex: 1;
+            margin-bottom: 20px;
+            list-style: none;
+            padding-right: 5px;
+        }
+
+        .trash-item {
+            padding: 12px;
+            border-bottom: 1px solid #f4f6f9;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .trash-item:last-child {
+            border-bottom: none;
+        }
+
+        .empty-trash-msg {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 30px 0;
+            font-style: italic;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .danger-btn {
+            background-color: var(--accent-trash);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+
+        .danger-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .danger-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
     </style>
 </head>
 <body>
@@ -221,12 +343,22 @@
                 <h1 id="vocab-word" class="word"></h1>
                 <div class="definition-wrapper">
                     <p id="vocab-definition" class="definition"></p>
-                    <button class="inline-speak-btn" onclick="speakCurrentEntry(event)" aria-label="Speak Entry">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                        </svg>
-                    </button>
+                    <div class="action-buttons">
+                        <button class="inline-speak-btn" onclick="speakCurrentEntry(event)" aria-label="Speak Entry">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                        </button>
+                        <button class="inline-trash-btn" onclick="trashCurrentEntry(event)" aria-label="Trash Entry">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -236,18 +368,34 @@
                 <span class="quote-mark">“</span>
                 <div class="quote-text-layout">
                     <p id="quote-string" class="quote-text"></p>
-                    <button class="inline-speak-btn" onclick="speakCurrentEntry(event)" aria-label="Speak Quote">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                        </svg>
-                    </button>
+                    <div class="action-buttons">
+                        <button class="inline-speak-btn" onclick="speakCurrentEntry(event)" aria-label="Speak Quote">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                        </button>
+                        <button class="inline-trash-btn" onclick="trashCurrentEntry(event)" aria-label="Trash Quote">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
         </div>
 
         <div class="controls">
+            <div class="btn trash-panel-btn" onclick="openTrashModal()" role="button" aria-label="View Trashcan">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </div>
             <div class="btn id-next-btn" role="button" aria-label="Next Entry">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="9 18 15 12 9 6"></polyline>
@@ -256,8 +404,24 @@
         </div>
     </div>
 
+    <!-- Trash Modal -->
+    <div id="trash-modal" class="modal" onclick="closeTrashModalOutside(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Trashcan</h2>
+                <button class="close-modal" onclick="closeTrashModal()">&times;</button>
+            </div>
+            <ul id="trash-list" class="trash-list">
+                <!-- Trashed items append here dynamically -->
+            </ul>
+            <div class="modal-footer">
+                <button id="empty-trash-btn" class="danger-btn" onclick="emptyTrash()">Empty Trashcan</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Exact raw data array preserved
+        // Exact raw data array preserved[cite: 1]
         const entries = [
             "Abate: Lessen, subside, decrease",
             "Ablation: Material erosion, melting",
@@ -451,7 +615,7 @@
             "Idiosyncrasy: Mode of behavior peculiar to individual",
             "Ignominious: Deserving causing public disgrace",
             "Imbue: Inspire permeate with feeling quality",
-            "Imminent: About to happen",
+            "Imminence: About to happen",
             "Immutable: Unchanging over time, unable to be changed",
             "Impassively: Calmly, without emotion",
             "Impeccable: Faultless, accordance with highest standards",
@@ -644,7 +808,7 @@
             "Rapacious: Aggressively greedy grasping",
             "Rapprochement: Establishment of harmonious relations",
             "Raucous: Making disturbingly harsh loud noise",
-            "Recalcitrant: Having obstinately uncooperative attitude toward authority",
+            "Recalcitrant: Having obstineately uncooperative attitude toward authority",
             "Recant: Say that one no longer holds opinion belief",
             "Recondite: Little known, abstruse",
             "Redoubtable: Formidable, especially as opponent",
@@ -740,7 +904,7 @@
             "History is not the objective record of what happened; it is the subjective echo of what was witnessed, preserved, and translated through the mind of the historian.",
             "You can insist on a different end to the story -- Monica Lewinsky",
             "Democracy is the worst form of goverment, except for all the others -- Winston Churchill",
-            "We mend but we don't forget. (about death of loved one) -- Mrs. Haris goes to Paris",
+            "We mended but we don't forget. (about death of loved one) -- Mrs. Haris goes to Paris",
             "Surround yourself with people who see the magic in you and make it shine brighter.",
             "Great minds discuss ideas; average minds discuss events; small minds discuss people. -- Eleanor Roosevelt",
             "First they ignore you, then they laugh at you, then they fight you, then you win. -- Mahatma Gandhi",
@@ -764,6 +928,8 @@
             "आप अकेला अवतरे, मरे अकेला होय। यूं कबहूं इस जीव का, साथी सगा न कोय। -- Ekatva Bhävanä (Solitariness)"
         ];
 
+        let currentRawEntry = "";
+
         function displayRandomEntry() {
             const card = document.getElementById('display-card');
             const dictView = document.getElementById('dict-view');
@@ -779,16 +945,16 @@
             
             setTimeout(() => {
                 const randomIndex = Math.floor(Math.random() * entries.length);
-                const entryStr = entries[randomIndex].trim();
+                currentRawEntry = entries[randomIndex].trim();
 
                 card.classList.remove('dictionary', 'quote');
                 dictView.style.display = 'none';
                 quoteView.style.display = 'none';
 
-                if (entryStr.includes(':')) {
-                    const colonIndex = entryStr.indexOf(':');
-                    const term = entryStr.substring(0, colonIndex).trim();
-                    const definition = entryStr.substring(colonIndex + 1).trim();
+                if (currentRawEntry.includes(':')) {
+                    const colonIndex = currentRawEntry.indexOf(':');
+                    const term = currentRawEntry.substring(0, colonIndex).trim();
+                    const definition = currentRawEntry.substring(colonIndex + 1).trim();
 
                     card.classList.add('dictionary');
                     document.getElementById('vocab-word').textContent = term;
@@ -796,7 +962,7 @@
                     dictView.style.display = 'block';
                 } else {
                     card.classList.add('quote');
-                    document.getElementById('quote-string').textContent = entryStr;
+                    document.getElementById('quote-string').textContent = currentRawEntry;
                     quoteView.style.display = 'block';
                 }
 
@@ -831,8 +997,86 @@
             }
         }
 
+        // Feature: Save current entry to localStorage trashcan
+        function trashCurrentEntry(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            if (!currentRawEntry) return;
+
+            let trashedItems = [];
+            try {
+                trashedItems = JSON.parse(localStorage.getItem('lexicon_trash')) || [];
+            } catch (err) {
+                trashedItems = [];
+            }
+
+            // Prevent adding exact duplicates to the trash history
+            if (!trashedItems.includes(currentRawEntry)) {
+                trashedItems.push(currentRawEntry);
+                localStorage.setItem('lexicon_trash', JSON.stringify(trashedItems));
+                alert('Entry added to the trashcan.');
+            } else {
+                alert('This entry is already in your trashcan.');
+            }
+        }
+
+        // Feature: View Trashcan Modal Panel
+        function openTrashModal() {
+            const modal = document.getElementById('trash-modal');
+            const trashList = document.getElementById('trash-list');
+            const emptyBtn = document.getElementById('empty-trash-btn');
+            
+            trashList.innerHTML = '';
+            
+            let trashedItems = [];
+            try {
+                trashedItems = JSON.parse(localStorage.getItem('lexicon_trash')) || [];
+            } catch (err) {
+                trashedItems = [];
+            }
+
+            if (trashedItems.length === 0) {
+                const emptyLi = document.createElement('li');
+                emptyLi.className = 'empty-trash-msg';
+                emptyLi.textContent = 'The trashcan is empty.';
+                trashList.appendChild(emptyLi);
+                emptyBtn.disabled = true;
+            } else {
+                trashedItems.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'trash-item';
+                    li.textContent = item;
+                    trashList.appendChild(li);
+                });
+                emptyBtn.disabled = false;
+            }
+
+            modal.classList.add('open');
+        }
+
+        function closeTrashModal() {
+            document.getElementById('trash-modal').classList.remove('open');
+        }
+
+        function closeTrashModalOutside(e) {
+            if (e.target.id === 'trash-modal') {
+                closeTrashModal();
+            }
+        }
+
+        // Feature: Empty the LocalStorage Trashcan
+        function emptyTrash() {
+            if (confirm('Are you sure you want to empty all items from your trashcan?')) {
+                localStorage.removeItem('lexicon_trash');
+                openTrashModal(); // Refresh layout updates
+            }
+        }
+
         // Standard direct window trigger safely bypassing strict context constraints
-        window.onload = function() {
+        window.addEventListener('DOMContentLoaded', function() {
             displayRandomEntry();
 
             const nextBtn = document.querySelector('.id-next-btn');
@@ -843,7 +1087,7 @@
                     displayRandomEntry();
                 };
             }
-        };
+        });
     </script>
 </body>
 </html>
