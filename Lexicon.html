@@ -32,6 +32,36 @@
             align-items: center;
             min-height: 100vh;
             padding: 20px;
+            position: relative;
+        }
+
+        /* Top Right Settings Button Position */
+        .settings-btn-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        .btn-settings {
+            background-color: var(--card-bg);
+            color: var(--text-muted);
+            border: none;
+            width: 48px;  
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+
+        .btn-settings:hover {
+            transform: scale(1.05);
+            color: var(--text-main);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
         }
 
         .container {
@@ -220,11 +250,7 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
 
-        .btn.trash-panel-btn {
-            background-color: #95a5a6;
-        }
-
-        /* Trashcan Modal Panel styles */
+        /* Modal Panel styles */
         .modal {
             display: none;
             position: fixed;
@@ -334,6 +360,16 @@
 </head>
 <body>
 
+    <!-- Repositioned Settings Trigger Panel -->
+    <div class="settings-btn-container">
+        <button class="btn-settings" onclick="openTrashModal()" aria-label="View Trash and Settings">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+        </button>
+    </div>
+
     <div class="container">
         <div id="display-card" class="card">
             
@@ -390,12 +426,6 @@
         </div>
 
         <div class="controls">
-            <div class="btn trash-panel-btn" onclick="openTrashModal()" role="button" aria-label="View Trashcan">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
-            </div>
             <div class="btn id-next-btn" role="button" aria-label="Next Entry">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="9 18 15 12 9 6"></polyline>
@@ -421,7 +451,6 @@
     </div>
 
     <script>
-        // Exact raw data array preserved[cite: 1]
         const entries = [
             "Abate: Lessen, subside, decrease",
             "Ablation: Material erosion, melting",
@@ -586,7 +615,7 @@
             "Futile: Incapable of producing useful result",
             "Gainsay: Deny, contradict statement",
             "Garrulous: Excessively talkative",
-            "Gauche: Lacking ease grace, unsophisticated",
+            "Gauche: Lacking ease grace, unsophicated",
             "Germane: Relevant to subject under consideration",
             "Glib: Fluent words but insincere shallow",
             "Glutton for punishment: Welcoming difficult tasks",
@@ -923,7 +952,7 @@
             "It's so quiet out here, you can almost hear a nigers think. -- Blazing Saddles",
             "When I was young my teachers were the old. I went to school to age to learn the past. Now when I am old my teachers are the young. I got to school to youth to learn the future. -- Robert Frost",
             "Your children are not your children, they are the sons and daughters of life's longing for itself. They come through you but not from you, and though they are with you yet they belong not to you. -- Khalid",
-            "इतनी शिद्दत से मैंने तुम्हें पाने की कोशिश की है कि हर ज़र्रे ने मुझे तुमसे मिलने की साज़िश की है। अगर किसी चीज़ को दिल से चाहो तो पूरी कायनात उसे तुमसे मिलाने की कोशिश में लग जाती है।",
+            "इतनी शिद्दत से मैंने तुम्हें पाने की कोशिश की है कि हर ज़र्रे ने मुझे तुमसे मिलाने की साज़िश की है। अगर किसी चीज़ को दिल से चाहो तो पूरी कायनात उसे तुमसे मिलाने की कोशिश में लग जाती है।",
             "आप अकेला अवतरे, मरे अकेला होय। यूं कबहूं इस जीव का, साथी सगा न कोय। -- Ekatva Bhävanä (Solitariness)"
         ];
 
@@ -996,7 +1025,6 @@
             }
         }
 
-        // Feature: Save current entry to localStorage trashcan
         function trashCurrentEntry(e) {
             if (e) {
                 e.preventDefault();
@@ -1012,7 +1040,6 @@
                 trashedItems = [];
             }
 
-            // Prevent adding exact duplicates to the trash history
             if (!trashedItems.includes(currentRawEntry)) {
                 trashedItems.push(currentRawEntry);
                 localStorage.setItem('lexicon_trash', JSON.stringify(trashedItems));
@@ -1022,7 +1049,6 @@
             }
         }
 
-        // Feature: View Trashcan Modal Panel
         function openTrashModal() {
             const modal = document.getElementById('trash-modal');
             const trashList = document.getElementById('trash-list');
@@ -1066,15 +1092,11 @@
             }
         }
 
-        // Feature: Empty the LocalStorage Trashcan
         function emptyTrash() {
-            if (confirm('Are you sure you want to empty all items from your trashcan?')) {
-                localStorage.removeItem('lexicon_trash');
-                openTrashModal(); // Refresh layout updates
-            }
+            localStorage.removeItem('lexicon_trash');
+            openTrashModal(); 
         }
 
-        // Standard direct window trigger safely bypassing strict context constraints
         window.addEventListener('DOMContentLoaded', function() {
             displayRandomEntry();
 
