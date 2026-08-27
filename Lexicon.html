@@ -163,7 +163,7 @@
             gap: 8px;
         }
 
-        .inline-speak-btn, .inline-trash-btn {
+        .inline-calendar-btn, .inline-speak-btn, .inline-trash-btn {
             background: none;
             border: none;
             color: var(--text-muted);
@@ -176,11 +176,11 @@
             border-radius: 50%;
         }
 
-        .inline-speak-btn:active, .inline-trash-btn:active {
+        .inline-calendar-btn:active, .inline-speak-btn:active, .inline-trash-btn:active {
             transform: scale(0.9);
         }
 
-        .inline-speak-btn:hover {
+        .inline-calendar-btn:hover, .inline-speak-btn:hover {
             color: var(--text-main);
         }
 
@@ -336,6 +336,14 @@
             justify-content: flex-end;
         }
 
+        .calendar-result {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            line-height: 1.5;
+            text-align: center;
+            padding: 20px 0 30px;
+        }
+
         .danger-btn {
             background-color: var(--accent-trash);
             color: white;
@@ -380,6 +388,14 @@
                 <div class="definition-wrapper">
                     <p id="vocab-definition" class="definition"></p>
                     <div class="action-buttons">
+                        <button type="button" class="inline-calendar-btn" onclick="window.openCalendarModal(event)" aria-label="Days until March 15, 2069">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </button>
                         <button class="inline-speak-btn" onclick="speakCurrentEntry(event)" aria-label="Speak Entry">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
@@ -405,6 +421,14 @@
                 <div class="quote-text-layout">
                     <p id="quote-string" class="quote-text"></p>
                     <div class="action-buttons">
+                        <button type="button" class="inline-calendar-btn" onclick="window.openCalendarModal(event)" aria-label="Days until March 15, 2069">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </button>
                         <button class="inline-speak-btn" onclick="speakCurrentEntry(event)" aria-label="Speak Quote">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
@@ -450,8 +474,82 @@
         </div>
     </div>
 
+    <!-- Calendar Modal -->
+    <div id="calendar-modal" class="modal" onclick="closeCalendarModalOutside(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Days to Mar 15, 2069</h2>
+                <button type="button" class="close-modal" onclick="closeCalendarModal()" aria-label="Close Calendar">&times;</button>
+            </div>
+            <p id="calendar-result" class="calendar-result"></p>
+        </div>
+    </div>
+
     <script>
         const entries = [
+            "Bonjour: Hello / Good morning in French",
+            "Merci: Thank you in French",
+            "S'il vous plaît: Please in French",
+            "Au revoir: Goodbye in French",
+            "Oui / Non: Yes / No in French",
+            "Pardon: Sorry / Excuse me in French",
+            "Excusez-moi: Excuse me in French",
+            "Compris: Understood in French",
+            "Bienvenue: Welcome in French",
+            "D'accord: Okay / Agreed in French",
+            "Savoir: To know in French",
+            "Aujourd'hui: Today in French",
+            "Demain: Tomorrow in French",
+            "Hier: Yesterday in French",
+            "Maintenant: Now in French",
+            "Hallo: Hello in German",
+            "Danke: Thank you in German",
+            "Bitte: Please / You're welcome in German",
+            "Auf Wiedersehen: Goodbye in German",
+            "Ja / Nein: Yes / No in German",
+            "Entschuldigung: Excuse me / Sorry in German",
+            "Guten Morgen: Good morning in German",
+            "Guten Abend: Good evening in German",
+            "Tschüss: Bye in German",
+            "Sehr gut: Very good in German",
+            "Heute: Today in German",
+            "Morgen: Tomorrow in German",
+            "Gestern: Yesterday in German",
+            "Freund: Friend in German",
+            "Wasser: Water in German",
+            "Grüezi: Hello / Formal greeting in Swiss German",
+            "Hoi: Hi / Informal greeting in Swiss German",
+            "Merci: Thank you in Swiss German",
+            "Uf Wiederluege: Goodbye in Swiss German",
+            "Tschau: Bye in Swiss German",
+            "Bitte: Please in Swiss German",
+            "Chuchichäschtli: Small kitchen cupboard / Classic test word in Swiss German",
+            "Guete Morge: Good morning in Swiss German",
+            "Proscht: Cheers in Swiss German",
+            "Ä Guete: Enjoy your meal in Swiss German",
+            "Guet: Good in Swiss German",
+            "Hüt: Today in Swiss German",
+            "Morn: Tomorrow in Swiss German",
+            "Gester: Yesterday in Swiss German",
+            "Wasserdicht: Waterproof in Swiss German",
+            "Hei: Hello in Norwegian",
+            "Takk: Thank you in Norwegian",
+            "Vær så god: Please / You're welcome in Norwegian",
+            "Hadet bra: Goodbye in Norwegian",
+            "Ja / Nei: Yes / No in Norwegian",
+            "Unnskyld: Excuse me / Sorry in Norwegian",
+            "God morgen: Good morning in Norwegian",
+            "God kveld: Good evening in Norwegian",
+            "Snakkes: Talk to you later in Norwegian",
+            "Venn: Friend in Norwegian",
+            "I dag: Today in Norwegian",
+            "I morgen: Tomorrow in Norwegian",
+            "I går: Yesterday in Norwegian",
+            "Vann: Water in Norwegian",
+            "Koselig: Cozy / Nice in Norwegian"
+        ];
+
+        const entries_orig = [
             "Abate: Lessen, subside, decrease",
             "Ablation: Material erosion, melting",
             "Absolution: Forgiveness, pardon, release",
@@ -468,13 +566,11 @@
             "Apoplectic: Furious, extremely indignant",
             "Appeases conjecture: Satisfies guesswork",
             "Atonement vs. weightless apology: Reparation versus excuse",
-            "Bastion: Stronghold, defender",
             "Beguiling: Charming, deceptive",
             "Behest: Command, order",
             "Belie: Misrepresent, contradict",
             "Bequeath: Leave, hand down",
             "Besotted: Infatuated, obsessed, intoxicated",
-            "Bespoke, artisanal: Custom, handcrafted",
             "Bigotry: Intolerance, prejudice",
             "Blowhard: Boastful person",
             "Bludgeon: Bully, force, batter",
@@ -483,7 +579,6 @@
             "Bravado: Bold pretense",
             "Bucolic: Rural, rustic, pastoral",
             "Byzantine, labyrinthine: Intricate, highly complex",
-            "Cadence: Vocal inflection, rhythm",
             "Cantankerous: Bad-tempered, uncooperative",
             "Catatonic: Unresponsive, immobile",
             "Cheeky: Impudent, amusingly irreverent",
@@ -506,7 +601,6 @@
             "Credence: Belief, acceptance as true",
             "Credulity: Tendency to believe easily",
             "Crescendo: Gradual increase in loudness",
-            "Cynicism: Skepticism, distrust of motives",
             "Dearth: Scarcity, lack",
             "Debacle: Sudden ignominious failure",
             "Debauchery: Excessive indulgence in pleasure",
@@ -521,14 +615,11 @@
             "Despot: Absolute ruler, tyrant",
             "Desultory: Lacking plan, purpose, enthusiasm",
             "Diatribe: Bitter verbal attack",
-            "Dichotomy: Division into two parts",
-            "Didactic: Intended to teach",
             "Diffident: Modest, shy, lacking confidence",
             "Dilatory: Slow to act, delaying",
             "Dilettante: Amateur, superficial interest",
             "Disabuse: Persuade someone idea is mistaken",
             "Disconsolate: Unhappy, unable to be comforted",
-            "Disparate: Essentially different, distinct",
             "Dissemble: Conceal motives, feelings, beliefs",
             "Disseminate: Spread, circulate information",
             "Dissolution: Dismissal, termination, decay",
@@ -602,8 +693,6 @@
             "Flippant: Not showing serious respectful attitude",
             "Florid: Having red flushed complexion",
             "Flout: Openly disregard rule law",
-            "Foil: Prevent from succeeding",
-            "Foment: Instigate, stir up trouble",
             "Forbearance: Patient self-control, restraint",
             "Fortuitous: Happening by lucky chance",
             "Fractious: Irritable, quarrelsome",
@@ -632,13 +721,9 @@
             "Heinous: Utterly odious wicked",
             "Heresy: Opinion profoundly at odds with accepted belief",
             "Hermetic: Complete airtight closure",
-            "Heterogeneous: Diverse in character content",
             "Hiatus: Pause gap in sequence series",
             "Histronic: Excessively theatrical dramatic",
-            "Homage: Special honor respect shown publicly",
-            "Homogeneous: Of same kind, alike",
-            "Hubris and myopia: Pride with shortsightedness",
-            "Humility and hubris: Modesty versus pride",
+            "Humility vs. Hubris: Modesty vs. Pride",
             "Hyperbole: Exaggerated statements not literal",
             "Iconoclast: Person attacking cherished beliefs",
             "Idiosyncrasy: Mode of behavior peculiar to individual",
@@ -675,7 +760,6 @@
             "Indomitable: Impossible to subdue defeat",
             "Ineffable: Too great extreme to be expressed words",
             "Ineluctable: Unable to be resisted avoided",
-            "Inept: Having showing no skill, clumsy",
             "Inert: Lacking ability strength to move",
             "Inexorable: Impossible to stop prevent",
             "Infallible: Incapable of making mistakes being wrong",
@@ -684,7 +768,6 @@
             "Inimical: Tending to obstruct harm",
             "Iniquity: Gross injustice wicked behavior",
             "Innocuous: Not harmful offensive",
-            "Inscrutable: Impossible to understand interpret",
             "Insidious: Proceeding gradual subtle way with harmful effects",
             "Insipid: Lacking flavor, interest",
             "Insolent: Showing rude arrogant lack of respect",
@@ -695,6 +778,7 @@
             "Intrepid: Fearless, adventurous",
             "Inundate: Overwhelm someone with things people",
             "Invective: Insulting, abusive highly critical language",
+            "Inveigle: Persuade, lure, or obtain something from someone through cleverness, flattery, or deception",
             "Inveigh: Speak write about with great hostility",
             "Inveterate: Long-established unlikely to change",
             "Invidious: Likely to arouse anger resentment",
@@ -721,10 +805,8 @@
             "Licentious: Promiscuous unprincipled sexual matters",
             "Limpid: Clear, transparent",
             "Lithe: Thin, supple, graceful",
-            "Loquacious: Talkative",
             "Lucid: Expressed clearly, easy to understand",
             "Lugubrious: Looking sounding sad dismal",
-            "Machination: Plot scheme",
             "Magnanimous: Generous forgiving, especially toward rival",
             "Maladroit: Inefficient, clumsy",
             "Malady: Disease ailment",
@@ -739,7 +821,6 @@
             "Meticulous: Showing great attention to detail",
             "Menagerie: Diverse collection of caged exotic animals → room full of eccentric, wildly different people who are forced to interact",
             "Misanthrope: Person dislikes humankind",
-            "Mitigate: Make less severe serious painful",
             "Mollify: Appease anger anxiety of",
             "Morose: Sullen, ill-tempered",
             "Munificent: Larger more generous than usual necessary",
@@ -763,15 +844,12 @@
             "Orthodoxy: Authorized generally accepted theory doctrine",
             "Ostentatious: Pretentious vulgar display designed to impress",
             "Ostracism: Exclusion from society group",
-            "Palpable: Able to be touched felt",
             "Panacea: Solution remedy for all difficulties diseases",
             "Paradigm: Typical example pattern of something",
             "Paradox: Self-contradictory statement looks true",
             "Pariah: Outcast",
             "Parochial: Having limited narrow outlook",
-            "Parody: Humorously exaggerated imitation",
             "Parsimonious: Unwilling to spend money resources",
-            "Partisan: Strong supporter of party cause",
             "Paucity: Presence of something in small insufficient quantities",
             "Peccadillo: Small relatively unimportant offense",
             "Pedantic: Excessively concerned with minor details rules",
@@ -810,8 +888,6 @@
             "Profane: Relating to that which is not sacred",
             "Profligate: Recklessly extravagant wasteful",
             "Profound: Very great intense",
-            "Profuse: Exuberantly plentiful, abundant",
-            "Prolific: Producing much fruit foliage many works",
             "Prolix: Using containing too many words",
             "Promulgate: Promote publicize account",
             "Propensity: Natural tendency to behave in particular way",
@@ -856,12 +932,8 @@
             "Reticent: Not revealing one's thoughts feelings readily",
             "Reverent: Feeling showing deep solemn respect",
             "Rhetoric: Art of effective persuasive speaking writing",
-            "Rite of passage: Milestone ritual",
-            "Ruminate: Think deeply about something",
-            "Rustic: Relating to countryside, rural",
             "Sacrosanct: Regarded as too important valuable to be interfered with",
             "Sagacious: Having showing keen mental discernment good judgment",
-            "Salient: Most noticeable important",
             "Salubrious: Health-giving, healthy",
             "Sanctimonious: Making show of being morally superior",
             "Sanguine: Optimistic positive, especially in bad situation",
@@ -869,11 +941,6 @@
             "Satiate: Satisfied to full",
             "Scathing: Witheringly scornful, severely critical",
             "Scintillating: Sparkling shining brightly, brilliantly clever",
-            "Scrupulous: Diligent, thorough, attentive to details",
-            "Scrutinize: Examine inspect closely thoroughly",
-            "Secular: Non-religious, temporal",
-            "Sedition: Rebellion incitement",
-            "Self-immolation: Sacrifice by fire",
             "Seminal: Groundbreaking, highly influential",
             "Seminal, pivotal: Influential turning point",
             "Sequoias subservience (obsequious): Extreme behavioral conformity",
@@ -896,7 +963,6 @@
             "Totalitarianism: Autocratic centralized control",
             "Unfathomable: Incomprehensible, immeasurable",
             "Unmoored: Disconnected, unstable",
-            "Valor: Bravery, courage",
             "Vapid: Dull, uninspiring, flavorless",
             "Veneration: Great respect, reverence",
             "Vernacular: Native everyday language",
@@ -957,6 +1023,36 @@
         ];
 
         let currentRawEntry = "";
+
+        window.openCalendarModal = function openCalendarModal(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const today = new Date();
+            const targetDate = new Date(2069, 2, 15); // March 15, 2069
+            const timeDiff = targetDate - today;
+            const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+            const result = document.getElementById('calendar-result');
+            const modal = document.getElementById('calendar-modal');
+            if (daysDiff >= 0) {
+                result.textContent = `${daysDiff}`;
+            } else {
+                result.textContent = `${Math.abs(daysDiff)} days have passed since March 15, 2069.`;
+            }
+            modal.classList.add('open');
+        };
+
+        function closeCalendarModal() {
+            document.getElementById('calendar-modal').classList.remove('open');
+        }
+
+        function closeCalendarModalOutside(e) {
+            if (e.target.id === 'calendar-modal') {
+                closeCalendarModal();
+            }
+        }
 
         function displayRandomEntry() {
             const card = document.getElementById('display-card');
