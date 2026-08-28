@@ -5,364 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Random Word & Quote Dashboard</title>
     <style>
-        :root {
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --text-main: #2c3e50;
-            --text-muted: #7f8c8d;
-            --accent-dict: #3498db;
-            --accent-quote: #e67e22;
-            --accent-trash: #e74c3c;
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-        }
-
-        /* Top Right Settings Button Position */
-        .settings-btn-container {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 10;
-        }
-
-        .btn-settings {
-            background-color: var(--card-bg);
-            color: var(--text-muted);
-            border: none;
-            width: 48px;  
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
-        }
-
-        .btn-settings:hover {
-            transform: scale(1.05);
-            color: var(--text-main);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-            perspective: 1000px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: var(--shadow);
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
-            opacity: 0;
-            transform: translateY(20px) scale(0.95);
-            min-height: 250px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card.visible {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 6px;
-        }
-
-        .card.dictionary::before {
-            background-color: var(--accent-dict);
-        }
-
-        .card.quote::before {
-            background-color: var(--accent-quote);
-        }
-
-        .dict-container, .quote-container {
-            display: none;
-        }
-
-        .word {
-            font-size: 2.2rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            color: var(--text-main);
-            margin-bottom: 12px;
-        }
-
-        .tag {
-            display: inline-block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            padding: 4px 10px;
-            border-radius: 50px;
-            margin-bottom: 20px;
-            letter-spacing: 0.5px;
-        }
-
-        .dictionary .tag {
-            background-color: rgba(52, 152, 219, 0.1);
-            color: var(--accent-dict);
-        }
-
-        .quote .tag {
-            background-color: rgba(230, 126, 34, 0.1);
-            color: var(--accent-quote);
-        }
-
-        .definition-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            width: 100%;
-        }
-
-        .definition {
-            font-size: 1.25rem;
-            line-height: 1.6;
-            color: var(--text-muted);
-            font-weight: 400;
-            flex: 1;
-        }
-
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .inline-calendar-btn, .inline-speak-btn, .inline-trash-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.1s ease, color 0.2s ease;
-            border-radius: 50%;
-        }
-
-        .inline-calendar-btn:active, .inline-speak-btn:active, .inline-trash-btn:active {
-            transform: scale(0.9);
-        }
-
-        .inline-calendar-btn:hover, .inline-speak-btn:hover {
-            color: var(--text-main);
-        }
-
-        .inline-trash-btn:hover {
-            color: var(--accent-trash);
-        }
-
-        .quote-container {
-            position: relative;
-        }
-
-        .quote-text-layout {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            width: 100%;
-            position: relative;
-            z-index: 1;
-        }
-
-        .quote-text {
-            font-size: 1.6rem;
-            font-style: italic;
-            line-height: 1.5;
-            color: var(--text-main);
-            font-weight: 600;
-            flex: 1;
-        }
-
-        .quote-mark {
-            position: absolute;
-            top: -40px;
-            left: -20px;
-            font-size: 8rem;
-            color: rgba(230, 126, 34, 0.08);
-            font-family: Georgia, serif;
-            user-select: none;
-            line-height: 1;
-            z-index: 0;
-        }
-
-        .controls {
-            margin-top: 30px;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .btn {
-            background-color: var(--text-main);
-            color: white;
-            border: none;
-            width: 56px;  
-            height: 56px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: all 0.2s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-
-        /* Modal Panel styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal.open {
-            display: flex;
-            opacity: 1;
-        }
-
-        .modal-content {
-            background-color: var(--card-bg);
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            box-shadow: var(--shadow);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--text-muted);
-        }
-
-        .trash-list {
-            overflow-y: auto;
-            flex: 1;
-            margin-bottom: 20px;
-            list-style: none;
-            padding-right: 5px;
-        }
-
-        .trash-item {
-            padding: 12px;
-            border-bottom: 1px solid #f4f6f9;
-            font-size: 0.95rem;
-            line-height: 1.4;
-        }
-
-        .trash-item:last-child {
-            border-bottom: none;
-        }
-
-        .empty-trash-msg {
-            color: var(--text-muted);
-            text-align: center;
-            padding: 30px 0;
-            font-style: italic;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .calendar-result {
-            color: var(--text-muted);
-            font-size: 1.25rem;
-            line-height: 1.5;
-            text-align: center;
-            padding: 20px 0 30px;
-        }
-
-        .danger-btn {
-            background-color: var(--accent-trash);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.2s ease;
-        }
-
-        .danger-btn:hover {
-            background-color: #c0392b;
-        }
-
-        .danger-btn:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
-        }
+        :root{--bg-color:#f4f6f9;--card-bg:#fff;--text-main:#2c3e50;--text-muted:#7f8c8d;--accent-dict:#3498db;--accent-quote:#e67e22;--accent-trash:#e74c3c;--shadow:0 10px 30px #0000000d}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg-color);color:var(--text-main);display:grid;place-items:center;min-height:100vh;padding:20px;position:relative}
+        .settings-btn-container{position:absolute;top:20px;right:20px;z-index:10}
+        .btn-settings,.btn{display:grid;place-items:center;border:0;border-radius:50%;cursor:pointer;transition:.2s;box-shadow:0 4px 15px #0000000d}
+        .btn-settings{width:48px;height:48px;background:var(--card-bg);color:var(--text-muted)}
+        .btn-settings:hover{transform:scale(1.05);color:var(--text-main);box-shadow:0 6px 20px #0000001a}
+        .container{width:100%;max-width:600px;perspective:1000px}
+        .card{background:var(--card-bg);border-radius:20px;padding:40px;box-shadow:var(--shadow);min-height:250px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;opacity:0;transform:translateY(20px) scale(.95);transition:transform .6s cubic-bezier(.34,1.56,.64,1),opacity .4s}
+        .card.visible{opacity:1;transform:none}
+        .card::before{content:"";position:absolute;inset:0 0 auto;height:6px}
+        .card.dictionary::before{background:var(--accent-dict)}
+        .card.quote::before{background:var(--accent-quote)}
+        .dict-container,.quote-container{display:none}
+        .word{font-size:2.2rem;font-weight:800;margin-bottom:12px}
+        .tag{display:inline-block;font-size:.75rem;font-weight:600;text-transform:uppercase;padding:4px 10px;border-radius:50px;margin-bottom:20px;letter-spacing:.5px}
+        .dictionary .tag{background:#3498db1a;color:var(--accent-dict)}
+        .quote .tag{background:#e67e221a;color:var(--accent-quote)}
+        .definition-wrapper,.quote-text-layout{display:flex;align-items:center;justify-content:space-between;gap:15px;width:100%}
+        .definition{font-size:1.25rem;line-height:1.6;color:var(--text-muted);flex:1}
+        .action-buttons{display:flex;flex-direction:column;gap:8px}
+        .inline-calendar-btn,.inline-speak-btn,.inline-trash-btn{background:none;border:0;color:var(--text-muted);cursor:pointer;padding:8px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;transition:.2s}
+        .inline-calendar-btn:active,.inline-speak-btn:active,.inline-trash-btn:active,.btn:active{transform:scale(.9)}
+        .inline-calendar-btn:hover,.inline-speak-btn:hover,.close-modal:hover{color:var(--text-main)}
+        .inline-trash-btn:hover{color:var(--accent-trash)}
+        .quote-container{position:relative}
+        .quote-text-layout{position:relative;z-index:1}
+        .quote-text{font-size:1.6rem;font-style:italic;line-height:1.5;font-weight:600;flex:1}
+        .quote-mark{position:absolute;top:-40px;left:-20px;font:8rem/1 Georgia,serif;color:#e67e2214;user-select:none}
+        .controls{margin-top:30px;display:flex;justify-content:center;gap:20px}
+        .btn{width:56px;height:56px;background:var(--text-main);color:#fff}
+        .btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px #00000026}
+        .modal{display:none;position:fixed;inset:0;z-index:100;background:#0008;place-items:center;opacity:0;transition:opacity .3s}
+        .modal.open{display:grid;opacity:1}
+        .modal-content{background:var(--card-bg);padding:30px;border-radius:20px;width:90%;max-width:500px;max-height:80vh;box-shadow:var(--shadow);display:flex;flex-direction:column}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid #eee;padding-bottom:10px}
+        .modal-title{font-size:1.25rem}
+        .close-modal{background:none;border:0;font-size:1.5rem;cursor:pointer;color:var(--text-muted)}
+        .trash-list{overflow-y:auto;flex:1;margin-bottom:20px;list-style:none;padding-right:5px}
+        .trash-item{padding:12px;border-bottom:1px solid var(--bg-color);font-size:.95rem;line-height:1.4}
+        .empty-trash-msg{color:var(--text-muted);text-align:center;padding:30px 0;font-style:italic}
+        .modal-footer{display:flex;justify-content:flex-end}
+        .calendar-result{font-size:1.5rem;font-weight:700;line-height:1.5;text-align:center;padding:20px 0 30px}
+        .danger-btn{background:var(--accent-trash);color:#fff;border:0;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;transition:.2s}
+        .danger-btn:hover{background:#c0392b}.danger-btn:disabled{background:#bdc3c7;cursor:not-allowed}
+        @media(max-width:480px){.card{padding:32px 24px}.definition-wrapper,.quote-text-layout{align-items:flex-start}.quote-text{font-size:1.35rem}.definition{font-size:1.1rem}}
 
     </style>
 </head>
@@ -1037,7 +725,8 @@
             const result = document.getElementById('calendar-result');
             const modal = document.getElementById('calendar-modal');
             if (daysDiff >= 0) {
-                result.textContent = `${daysDiff}`;
+                const formattedDays = daysDiff.toLocaleString('en-US');
+                result.textContent = `${formattedDays}`;
             } else {
                 result.textContent = `${Math.abs(daysDiff)} days have passed since March 15, 2069.`;
             }
